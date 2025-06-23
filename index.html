@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>방탈출: 1950 교실의 비밀</title>
+    
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Malgun Gothic', sans-serif; background-color: #f0f0f0; }
+        .hidden { display: none !important; }
+        #start-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; background: linear-gradient(to bottom, #e0e0e0, #ffffff); }
+        .start-box { background-color: white; padding: 30px 40px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); text-align: center; }
+        .start-box h1 { margin-top: 0; color: #333; }
+        .start-box .input-group { margin-bottom: 15px; text-align: left; }
+        .start-box label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
+        .start-box input { width: 250px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        #start-button { width: 100%; padding: 12px; font-size: 18px; font-weight: bold; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
+        #start-button:hover { background-color: #0056b3; }
+        #game-container { position: relative; width: 100%; height: 100%; }
+        .background-image { width: 100%; height: 100%; object-fit: cover; }
+        #timer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background-color: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; font-weight: bold; border-radius: 10px; z-index: 10; font-family: 'Courier New', Courier, monospace; }
+        .clickable-area { position: absolute; cursor: pointer; }
+        #monitor-area { top: 41%; left: 15%; width: 18%; height: 23%; }
+        #speaker-area { top: 14%; left: 25%; width: 8%; height: 15%; }
+        #pencil-case-area { top: 74%; left: 56%; width: 14%; height: 10%; }
+        #clock-area { top: 10%; left: 89%; width: 6%; height: 11%; }
+        #door-area { top: 25%; left: 86%; width: 12%; height: 60%; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: white; padding: 25px; border-radius: 10px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); min-width: 300px; max-width: 90%; }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content input[type="text"], .modal-content input[type="number"] { padding: 8px; margin: 10px 5px; border: 1px solid #ccc; border-radius: 5px; }
+        .modal-content button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; background-color: #007bff; color: white; }
+        .modal-content button:hover { background-color: #0056b3; }
+        .close-button { background-color: #6c757d; }
+        .close-button:hover { background-color: #5a6268; }
+        #memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .card { width: 60px; height: 60px; background-color: #ffc107; border-radius: 5px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transform-style: preserve-3d; transition: transform 0.5s; }
+        .card .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; }
+        .card .card-back { transform: rotateY(180deg); background-color: #e0e0e0; }
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { background-color: #28a745; cursor: default; }
+        .success-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100vw; height: 100vh; text-align: center; background: linear-gradient(to bottom, #d4edda, #ffffff); color: #155724; padding: 20px; box-sizing: border-box; }
+        .success-box { background-color: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); max-width: 500px; width: 90%; }
+        .success-box h1 { margin-top: 0; }
+        .success-box p { font-size: 18px; margin: 10px 0; }
+        .success-box textarea { width: 95%; height: 100px; margin-top: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; resize: vertical; }
+        .success-box button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+        .success-box button:disabled { background-color: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div id="start-screen"><div class="start-box"><h1>방탈출: 1950 교실의 비밀</h1><div class="input-group"><label for="grade-input">학년</label><input type="number" id="grade-input" placeholder="예: 6"></div><div class="input-group"><label for="class-input">반</label><input type="number" id="class-input" placeholder="예: 1"></div><div class="input-group"><label for="name-input">이름</label><input type="text" id="name-input" placeholder="예: 홍길동"></div><button id="start-button">게임 시작</button></div></div>
+    <div id="game-container" class="hidden"><div id="timer">00:00</div><img src="https://i.ibb.co/fVCPV3jd/Whisk-8ad83bd02f.jpg" alt="교실 배경" class="background-image"><div class="clickable-area" id="monitor-area" title="모니터"></div><div class="clickable-area" id="speaker-area" title="스피커"></div><div class="clickable-area" id="pencil-case-area" title="필통"></div><div class="clickable-area" id="clock-area" title="시계"></div><div class="clickable-area" id="door-area" title="문"></div></div>
+    <div id="info-modal" class="modal-overlay hidden"><div class="modal-content"><h2 id="info-title"></h2><p id="info-text"></p><div id="quiz-section" class="hidden"><input type="text" id="quiz-input" placeholder="정답을 입력하세요"><button id="quiz-submit">확인</button></div><button class="close-button">닫기</button></div></div>
+    <div id="memory-game-modal" class="modal-overlay hidden"><div class="modal-content"><h2>메모리 카드 게임</h2><p>같은 그림의 카드를 찾아 짝을 맞추세요!</p><div id="memory-grid"></div><p id="game-status"></p><button class="close-button">포기하고 닫기</button></div></div>
+    <div id="password-modal" class="modal-overlay hidden"><div class="modal-content"><h2>탈출 시도</h2><p>네 자리 비밀번호를 입력하여 문을 여세요.</p><input type="text" id="password-input" placeholder="비밀번호 4자리" maxlength="4"><button id="password-submit">탈출하기</button><button class="close-button">취소</button></div></div>
+
+    <script>
+        // [⚠️ 중요] 2단계에서 복사한 웹 앱 URL을 여기에 붙여넣으세요!
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwr7dZs4tDW3NqNGCN2f_dLXQNwfNddKek8xWRpLWFNhnf9m2as_DBQPPtzzgul7KBceg/exec";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let startTime, timerInterval;
+            const startScreen = document.getElementById('start-screen');
+            const gameContainer = document.getElementById('game-container');
+            const startButton = document.getElementById('start-button');
+            const gradeInput = document.getElementById('grade-input');
+            const classInput = document.getElementById('class-input');
+            const nameInput = document.getElementById('name-input');
+            const timerDisplay = document.getElementById('timer');
+
+            startButton.addEventListener('click', () => {
+                if (gradeInput.value === '' || classInput.value === '' || nameInput.value.trim() === '') {
+                    alert('학년, 반, 이름을 모두 입력해주세요!');
+                    return;
+                }
+                startScreen.classList.add('hidden');
+                gameContainer.classList.remove('hidden');
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            });
+            
+            function updateTimer() {
+                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+                const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+                timerDisplay.textContent = `${minutes}:${seconds}`;
+            }
+
+            // 이하 게임 로직은 생략... (위와 동일)
+            const elements = { monitor: document.getElementById('monitor-area'), speaker: document.getElementById('speaker-area'), pencilCase: document.getElementById('pencil-case-area'), clock: document.getElementById('clock-area'), door: document.getElementById('door-area'), };
+            const modals = { info: document.getElementById('info-modal'), memory: document.getElementById('memory-game-modal'), password: document.getElementById('password-modal'), };
+            const infoElements = { title: document.getElementById('info-title'), text: document.getElementById('info-text'), quizSection: document.getElementById('quiz-section'), quizInput: document.getElementById('quiz-input'), quizSubmit: document.getElementById('quiz-submit'), };
+            const passwordElements = { input: document.getElementById('password-input'), submit: document.getElementById('password-submit'), };
+            const gameState = { cluesFound: { monitor: false, speaker: false, clock: false, pencilCase: false }, activeQuiz: null, };
+            document.querySelectorAll('.close-button').forEach(button => button.addEventListener('click', () => button.closest('.modal-overlay').classList.add('hidden')));
+            elements.clock.addEventListener('click', () => { if (gameState.cluesFound.clock) { alert("이미 확인한 단서입니다."); return; } infoElements.title.textContent = "낡은 시계"; infoElements.text.innerHTML = "시계 뒷면에 작은 글씨가 쓰여있다.<br><b>'탈출 암호의 첫 번째 숫자는 1'</b>"; infoElements.quizSection.classList.add('hidden'); modals.info.classList.remove('hidden'); gameState.cluesFound.clock = true; });
+            elements.monitor.addEventListener('click', () => { if (gameState.cluesFound.monitor) { alert("이미 해결한 문제입니다."); return; } gameState.activeQuiz = 'monitor'; infoElements.title.textContent = "꺼진 모니터"; infoElements.text.textContent = "모니터에 먼지로 글씨가 쓰여있다. '한국 전쟁이 발발한 연도는 19__0년이다. 빈칸에 들어갈 숫자는?'"; infoElements.quizInput.value = ''; infoElements.quizSection.classList.remove('hidden'); modals.info.classList.remove('hidden'); });
+            elements.speaker.addEventListener('click', () => { if (gameState.cluesFound.speaker) { alert("이미 해결한 문제입니다."); return; } gameState.activeQuiz = 'speaker'; infoElements.title.textContent = "고장난 스피커"; infoElements.text.textContent = "스피커에서 지지직거리는 소리와 함께 음성이 들린다. '인천상륙작전이 시작된 달은 몇 월인가?'"; infoElements.quizInput.value = ''; infoElements.quizSection.classList.remove('hidden'); modals.info.classList.remove('hidden'); });
+            infoElements.quizSubmit.addEventListener('click', () => { const answer = infoElements.quizInput.value.trim(); if (gameState.activeQuiz === 'monitor') { if (answer === '5') { alert("정답! 암호 조각 '5'를 획득했습니다."); gameState.cluesFound.monitor = true; modals.info.classList.add('hidden'); } else { alert("오답입니다. 다시 생각해보세요."); } } else if (gameState.activeQuiz === 'speaker') { if (answer === '9') { alert("정답! 암호 조각 '9'를 획득했습니다."); gameState.cluesFound.speaker = true; modals.info.classList.add('hidden'); } else { alert("오답입니다. 다시 생각해보세요."); } } });
+            elements.pencilCase.addEventListener('click', () => { if (gameState.cluesFound.pencilCase) { alert("이미 해결한 게임입니다."); return; } setupMemoryGame(); modals.memory.classList.remove('hidden'); });
+            function setupMemoryGame() { const grid = document.getElementById('memory-grid'); const status = document.getElementById('game-status'); grid.innerHTML = ''; status.textContent = ''; const symbols = ['태극기', 'UN', '탱크', '지도', '철모', '무전기']; let cards = [...symbols, ...symbols]; cards.sort(() => 0.5 - Math.random()); let flippedCards = []; let matchedPairs = 0; cards.forEach(symbol => { const card = document.createElement('div'); card.classList.add('card'); card.dataset.symbol = symbol; card.innerHTML = `<div class="card-face card-front"></div><div class="card-face card-back">${symbol}</div>`; card.addEventListener('click', () => { if (card.classList.contains('matched') || flippedCards.length >= 2 || card.classList.contains('flipped')) return; card.classList.add('flipped'); flippedCards.push(card); if (flippedCards.length === 2) setTimeout(checkMatch, 1000); }); grid.appendChild(card); }); function checkMatch() { const [card1, card2] = flippedCards; if (card1.dataset.symbol === card2.dataset.symbol) { card1.classList.add('matched'); card2.classList.add('matched'); matchedPairs++; if (matchedPairs === symbols.length) { status.textContent = "성공! 마지막 암호 조각 '0'을 찾았다!"; gameState.cluesFound.pencilCase = true; setTimeout(() => { alert("게임 성공! 암호 조각 '0'을 획득했습니다."); modals.memory.classList.add('hidden'); }, 1000); } } else { card1.classList.remove('flipped'); card2.classList.remove('flipped'); } flippedCards = []; } }
+            elements.door.addEventListener('click', () => { passwordElements.input.value = ''; modals.password.classList.remove('hidden'); });
+
+            // [수정됨] 최종 탈출 버튼 이벤트
+            passwordElements.submit.addEventListener('click', () => {
+                if (passwordElements.input.value === '1950') {
+                    clearInterval(timerInterval);
+                    const finalTime = timerDisplay.textContent;
+                    alert("철컥! 문이 열렸다! 탈출 성공!");
+                    
+                    const successHTML = `
+                        <div class="success-screen">
+                            <div class="success-box">
+                                <h1>탈출 성공!</h1>
+                                <p><strong>참가자:</strong> ${gradeInput.value}학년 ${classInput.value}반 ${nameInput.value}</p>
+                                <p><strong>소요 시간:</strong> ${finalTime}</p>
+                                <hr>
+                                <label for="comments" style="font-weight: bold;">게임 소감 남기기</label>
+                                <textarea id="comments" placeholder="재미있었어요!"></textarea>
+                                <button id="submit-comment">소감 제출하고 기록하기</button>
+                                <p id="submit-status" style="margin-top:10px;"></p>
+                            </div>
+                        </div>
+                    `;
+                    document.body.innerHTML = successHTML;
+
+                    // [추가됨] 소감 제출 버튼에 이벤트 리스너 추가
+                    document.getElementById('submit-comment').addEventListener('click', (e) => {
+                        const submitButton = e.target;
+                        const commentText = document.getElementById('comments').value;
+                        const statusP = document.getElementById('submit-status');
+
+                        // 버튼 비활성화 및 상태 메시지 변경
+                        submitButton.disabled = true;
+                        statusP.textContent = "저장 중입니다...";
+
+                        const dataToSubmit = {
+                            grade: gradeInput.value,
+                            classNum: classInput.value,
+                            name: nameInput.value,
+                            time: finalTime,
+                            comment: commentText
+                        };
+
+                        fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors', // CORS 에러 방지를 위해 추가
+                            cache: 'no-cache',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dataToSubmit)
+                        })
+                        .then(() => {
+                            statusP.textContent = "소중한 의견이 성공적으로 기록되었습니다!";
+                            statusP.style.color = "green";
+                        })
+                        .catch(error => {
+                            statusP.textContent = "오류가 발생했습니다. 나중에 다시 시도해주세요.";
+                            statusP.style.color = "red";
+                            console.error('Error:', error);
+                            submitButton.disabled = false; // 에러 시 버튼 다시 활성화
+                        });
+                    });
+                } else {
+                    alert("비밀번호가 틀렸습니다.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
